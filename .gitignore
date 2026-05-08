@@ -1,7 +1,3 @@
-# Dev utils
-build.sh
-dist.sh
-
 # Build outputs
 build/
 cmake-build-*/

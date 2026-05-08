@@ -5,8 +5,29 @@ project(AkiraMulti VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Path to your JUCE checkout
-add_subdirectory("/Users/gustavoakira/Python/JUCE/JUCE" JUCE)
+set(JUCE_DIR "" CACHE PATH "Optional path to a local JUCE checkout")
+set(JUCE_GIT_TAG "8.0.12" CACHE STRING "JUCE git tag to fetch when JUCE_DIR is not set")
+
+if (JUCE_DIR)
+    add_subdirectory("${JUCE_DIR}" JUCE)
+else()
+    include(FetchContent)
+
+    FetchContent_Declare(
+        JUCE
+        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+        GIT_TAG ${JUCE_GIT_TAG}
+        GIT_SHALLOW TRUE
+    )
+
+    FetchContent_MakeAvailable(JUCE)
+endif()
+
+set(AKIRA_MULTI_FORMATS Standalone VST3)
+
+if (APPLE)
+    list(APPEND AKIRA_MULTI_FORMATS AU)
+endif()
 
 juce_add_plugin(AkiraMulti
     COMPANY_NAME "G Akira"
@@ -14,10 +35,7 @@ juce_add_plugin(AkiraMulti
     PLUGIN_MANUFACTURER_CODE Gakr
     PLUGIN_CODE AkMu
 
-    FORMATS
-        Standalone
-        VST3
-        AU
+    FORMATS ${AKIRA_MULTI_FORMATS}
 
     PRODUCT_NAME "Akira Multi"
 )

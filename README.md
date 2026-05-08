@@ -70,26 +70,52 @@ reloads a project or preset.
 - `SliderAttachment` instances that keep each slider and APVTS parameter in
   sync.
 
-## Building
+## Building Locally
 
-This project uses CMake and expects a local JUCE checkout at:
+This project uses CMake. For local development, point CMake at a JUCE checkout:
 
-```text
-/Users/gustavoakira/Python/JUCE/JUCE
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_DIR=/path/to/JUCE
+cmake --build build
 ```
 
-Build with:
+On this machine, the helper script uses:
 
 ```sh
 ./build.sh
 ```
 
-Or run the commands manually:
+If `JUCE_DIR` is not provided, CMake downloads the pinned JUCE release defined by
+`JUCE_GIT_TAG` in `CMakeLists.txt`. That is how GitHub Actions builds the
+project.
+
+## Continuous Builds
+
+GitHub Actions builds Akira Multi automatically on macOS and Windows for pushes,
+pull requests, manual workflow runs, and version tags.
+
+The workflow produces:
+
+- macOS: universal arm64/x86_64 Standalone app, VST3, and AU.
+- Windows: Standalone `.exe` and VST3.
+
+Each build uploads a zipped artifact:
+
+- `AkiraMulti-macOS.zip`
+- `AkiraMulti-Windows.zip`
+
+To create a public release with downloadable plugin builds, push a version tag:
 
 ```sh
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+git tag v0.0.1
+git push origin v0.0.1
 ```
+
+The release job attaches the macOS and Windows zip files to the GitHub Release.
+
+## License
+
+Akira Multi is released under the MIT License. See `LICENSE`.
 
 ## Suggested Next Steps
 
