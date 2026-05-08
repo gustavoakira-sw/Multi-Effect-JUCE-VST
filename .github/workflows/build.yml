@@ -29,11 +29,9 @@ jobs:
           - name: macOS
             os: macos-latest
             artifact_name: AkiraMulti-macOS
-            package_name: AkiraMulti-macOS.zip
           - name: Windows
             os: windows-latest
             artifact_name: AkiraMulti-Windows
-            package_name: AkiraMulti-Windows.zip
 
     steps:
       - name: Check out repository
@@ -55,28 +53,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist
-          cmake -E tar cfv "dist/${{ matrix.package_name }}" --format=zip \
-            "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/Standalone/${{ env.PRODUCT_NAME }}.app" \
-            "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PRODUCT_NAME }}.vst3" \
-            "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/AU/${{ env.PRODUCT_NAME }}.component"
+          mkdir -p "dist/${{ matrix.artifact_name }}"
+          cp -R "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/Standalone/${{ env.PRODUCT_NAME }}.app" "dist/${{ matrix.artifact_name }}/"
+          cp -R "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PRODUCT_NAME }}.vst3" "dist/${{ matrix.artifact_name }}/"
+          cp -R "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/AU/${{ env.PRODUCT_NAME }}.component" "dist/${{ matrix.artifact_name }}/"
 
       - name: Package Windows artifacts
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          cmake -E tar cfv "dist/${{ matrix.package_name }}" --format=zip `
-            "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/Standalone/${{ env.PRODUCT_NAME }}.exe" `
-            "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PRODUCT_NAME }}.vst3"
+          New-Item -ItemType Directory -Force -Path "dist/${{ matrix.artifact_name }}" | Out-Null
+          Copy-Item -Recurse -Force "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/Standalone/${{ env.PRODUCT_NAME }}.exe" "dist/${{ matrix.artifact_name }}/"
+          Copy-Item -Recurse -Force "build/AkiraMulti_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PRODUCT_NAME }}.vst3" "dist/${{ matrix.artifact_name }}/"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
-          path: dist/${{ matrix.package_name }}
+          path: dist/${{ matrix.artifact_name }}
           if-no-files-found: error
-          archive: false
 
   release:
     name: Publish GitHub Release
@@ -89,7 +84,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: release-assets
-          merge-multiple: true
 
       - name: Prepare release assets
         shell: bash
@@ -100,7 +94,11 @@ jobs:
           find release-assets -maxdepth 6 -print
 
           mkdir -p release-zips
-          find release-assets -type f -name "*.zip" -exec cp "{}" release-zips/ \;
+          test -d release-assets/AkiraMulti-macOS
+          test -d release-assets/AkiraMulti-Windows
+
+          cmake -E chdir release-assets cmake -E tar cfv ../release-zips/AkiraMulti-macOS.zip --format=zip AkiraMulti-macOS
+          cmake -E chdir release-assets cmake -E tar cfv ../release-zips/AkiraMulti-Windows.zip --format=zip AkiraMulti-Windows
 
           echo "Release zip contents:"
           find release-zips -maxdepth 1 -type f -name "*.zip" -print
@@ -116,6 +114,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" release-zips/*.zip \
-            --title "${{ github.ref_name }}" \
-            --notes "Automated Akira Multi build for macOS and Windows."
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+            gh release upload "${{ github.ref_name }}" release-zips/*.zip --clobber
+          else
+            gh release create "${{ github.ref_name }}" release-zips/*.zip \
+              --title "${{ github.ref_name }}" \
+              --notes "Automated Akira Multi build for macOS and Windows."
+          fi
