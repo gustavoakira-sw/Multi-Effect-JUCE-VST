@@ -1,0 +1,80 @@
+# Dev utils
+build.sh
+dist.sh
+
+# Build outputs
+build/
+cmake-build-*/
+out/
+dist/
+bin/
+obj/
+
+# JUCE/CMake generated artifacts
+*_artefacts/
+JuceLibraryCode/
+.vs/
+.vscode/.cmake/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+DartConfiguration.tcl
+install_manifest.txt
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+
+# Audio plugin bundles / generated binaries
+*.vst3/
+*.component/
+*.app/
+*.appex/
+*.aaxplugin/
+*.lv2/
+*.clap/
+
+# Compiled objects/libraries
+*.o
+*.obj
+*.a
+*.dylib
+*.so
+*.dll
+*.lib
+*.exe
+
+# Debug / crash / logs
+*.log
+*.dSYM/
+*.crash
+*.ips
+
+# IDE/editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
